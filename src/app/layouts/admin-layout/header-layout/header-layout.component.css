@@ -1,0 +1,72 @@
+.header {
+  background-color: #005a8d; /* Màu xanh sáng hơn một chút giống ảnh */
+  height: 55px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-left {
+  display: flex;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  font-weight: bold;
+  font-size: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.logo-box {
+  background-color: #ffffff;
+  color: #004e75;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-right: 10px;
+  font-size: 16px;
+}
+.brand-name {
+  letter-spacing: 0.5px;
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.username {
+  font-size: 14px;
+  font-weight: 500;
+}
+.user-icon {
+  font-size: 18px;
+}
+.logout-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

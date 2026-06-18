@@ -1,0 +1,12 @@
+.auth-layout-container {
+  width: 100vw;
+  height: 100vh;
+  background-color: #f0f2f5; /* Màu nền xám nhạt lịch sự */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url(../../../assets/images/auth-background.jpg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}

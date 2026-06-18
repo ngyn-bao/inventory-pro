@@ -1,0 +1,27 @@
+.admin-wrapper {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+.admin-sidebar {
+  flex: 0 0 240px;
+  overflow: hidden;
+}
+.admin-sidebar:not(.open) {
+  flex-basis: 0;
+  width: 0;
+}
+.admin-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100vh;
+  overflow: hidden;
+}
+.admin-content {
+  flex: 1;
+  padding: 24px;
+  background-color: #f4f6f9;
+  overflow-y: auto;
+}

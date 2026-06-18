@@ -1,0 +1,10 @@
+<div class="admin-wrapper">
+  <sidebar-layout class="admin-sidebar" [class.open]="sidebarOpen"></sidebar-layout>
+
+  <div class="admin-main">
+    <header-layout (toggleSidebar)="toggleSidebar()"></header-layout>
+    <main class="admin-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,174 @@
+<div class="user-management-container">
+  <h1 class="page-title">Quản lý người dùng</h1>
+
+  <div class="table-card">
+    <div class="toolbar">
+      <div class="actions-left">
+        <button class="btn btn-primary" (click)="openAddModal()">+ Thêm mới</button>
+        <button
+          class="btn btn-danger-outline"
+          [disabled]="!hasSelectedUsers"
+          (click)="triggerBulkDeletePrompt()"
+        >
+          <i class="fa-solid fa-trash-can"></i> Xóa
+        </button>
+      </div>
+      <div class="search-right">
+        <input
+          type="text"
+          placeholder="Nhập để tìm kiếm..."
+          [value]="searchTerm"
+          (input)="searchTerm = $event.target.value; applyFilter()"
+          class="text-black"
+        />
+        <button class="btn-search text-white"><i class="fa-solid fa-magnifying-glass"></i></button>
+      </div>
+    </div>
+
+    <p-table
+      [value]="filteredUsers"
+      [paginator]="true"
+      [(selection)]="selectedUsers"
+      dataKey="stt"
+      selectionMode="multiple"
+      [rows]="5"
+      [rowsPerPageOptions]="[5, 10, 20]"
+      currentPageReportTemplate="Hiển thị {first} - {last} của tổng số {totalRecords}"
+      [showCurrentPageReport]="true"
+      [tableStyle]="{ 'min-width': '50rem' }"
+      class="bg-white"
+    >
+      <ng-template #header>
+        <tr>
+          <th style="width: 5%">
+            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          </th>
+          <th style="width: 8%">STT</th>
+          <th style="width: 32%">Họ và tên</th>
+          <th style="width: 20%">Tên đăng nhập</th>
+          <th style="width: 10%">Quyền</th>
+          <th style="width: 30%; text-align: center">Thao Tác</th>
+        </tr>
+      </ng-template>
+
+      <ng-template #body let-user>
+        <tr [pSelectableRow]="user">
+          <td>
+            <p-tableCheckbox [value]="user"></p-tableCheckbox>
+          </td>
+          <td>{{ user.stt }}</td>
+          <td>{{ user.hoTen }}</td>
+          <td>{{ user.username }}</td>
+          <td>
+            <p-tag [value]="user.role" [severity]="getSeverity(user.role)" />
+          </td>
+          <td style="text-align: center">
+            <div class="btn-group">
+              <button class="btn-icon btn-edit" title="Sửa" (click)="openEditModal(user)">
+                <i class="fa-solid fa-pencil"></i>
+              </button>
+              <button
+                class="btn-icon btn-delete"
+                title="Xóa"
+                (click)="triggerDeletePrompt(user.stt)"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5" style="text-align: center; color: #999; padding: 20px">
+            Không tìm thấy người dùng nào
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+@if (showDeleteDialog) {
+  <div class="dialog-backdrop">
+    <dialog open class="custom-confirm-dialog bg-amber-300 text-white font-bold text-sm w-md">
+      <div class="dialog-header">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Xác nhận xóa</h3>
+      </div>
+      <div class="dialog-body">
+        <p>
+          Bạn có chắc chắn muốn xóa người dùng có <strong>STT {{ userSttToDelete }}</strong> không?
+        </p>
+      </div>
+      <div class="dialog-footer flex w-1/2 justify-around mt-3">
+        <button class="btn btn-secondary" (click)="cancelDelete()">Hủy</button>
+        <button class="btn btn-delete" (click)="confirmDelete()">Xác nhận xóa</button>
+      </div>
+    </dialog>
+  </div>
+}
+
+@if (showBulkDeleteDialog && hasSelectedUsers) {
+  <div class="dialog-backdrop">
+    <dialog open class="custom-confirm-dialog bg-amber-300 text-white font-bold text-sm w-md">
+      <div class="dialog-header">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo xóa hàng loạt</h3>
+      </div>
+      <div class="dialog-body">
+        <p>
+          Bạn có chắc chắn muốn xóa <strong>{{ selectedUsers.length }}</strong> người dùng đang được
+          chọn không?
+        </p>
+        <p class="sub-text">Dữ liệu của những tài khoản này sẽ bị xóa vĩnh viễn khỏi hệ thống.</p>
+      </div>
+      <div class="dialog-footer flex w-1/2 justify-around mt-3">
+        <button class="btn btn-secondary" (click)="cancelBulkDelete()">Hủy</button>
+        <button class="btn btn-delete" (click)="confirmBulkDelete()">Xác nhận xóa sạch</button>
+      </div>
+    </dialog>
+  </div>
+}
+
+<div class="modal-backdrop" *ngIf="showModal">
+  <div class="modal-content">
+    <h2 class="text-black">{{ isEditMode ? 'Cập nhật người dùng' : 'Thêm mới người dùng' }}</h2>
+    <div class="form-group">
+      <label class="text-black">Họ và tên</label>
+      <input
+        class="text-black"
+        type="text"
+        [value]="currentFormUser.hoTen"
+        (input)="currentFormUser.hoTen = $event.target.value"
+        placeholder="Nhập họ và tên..."
+      />
+    </div>
+    <div class="form-group">
+      <label class="text-black">Tên đăng nhập</label>
+      <input
+        type="text"
+        class="text-black"
+        [value]="currentFormUser.username"
+        (input)="currentFormUser.username = $event.target.value"
+        [disabled]="isEditMode"
+        placeholder="Nhập tên đăng nhập..."
+      />
+    </div>
+    <div class="form-group">
+      <label class="text-black">Quyền</label>
+      <select
+        [value]="currentFormUser.role"
+        (change)="currentFormUser.role = $any($event.target).value"
+        class="text-black"
+      >
+        <option class="text-black" value="Admin">Admin</option>
+        <option class="text-black" value="Manager">Manager</option>
+        <option class="text-black" value="User">User</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" (click)="showModal = false">Hủy</button>
+      <button class="btn btn-primary" (click)="saveUser()">Lưu lại</button>
+    </div>
+  </div>
+</div>

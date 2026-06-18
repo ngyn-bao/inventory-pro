@@ -1,0 +1,46 @@
+<header class="header">
+  <div class="header-left">
+    <button
+      class="toggle-btn"
+      type="button"
+      (click)="onToggleSidebar()"
+      aria-label="Toggle sidebar"
+    >
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="brand">
+      <span class="logo-box">IM</span>
+      <span class="brand-name text-white">Inventory Pro</span>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="user-info">
+      <span class="username">root</span>
+      <i class="user-icon"><i class="fa-solid fa-user"></i></i>
+    </div>
+    <button class="logout-btn" (click)="triggerLogoutPrompt()" title="Đăng xuất">
+      <i class="fa-solid fa-door-open"></i>
+    </button>
+  </div>
+</header>
+@if (showLogoutDialog) {
+  <div class="dialog-backdrop">
+    <dialog open class="custom-confirm-dialog bg-amber-400">
+      <div class="dialog-header">
+        <h3><i class="fa-solid fa-arrow-right-from-bracket"></i> Xác nhận đăng xuất</h3>
+      </div>
+      <div class="dialog-body">
+        <p>Bạn có chắc chắn muốn rời khỏi hệ thống <strong>Inventory Pro</strong>?</p>
+      </div>
+      <div class="dialog-footer flex justify-around my-4 pr-10">
+        <button class="btn btn-secondary bg-red-500 w-24 rounded-xs" (click)="cancelLogout()">
+          Ở lại
+        </button>
+        <button class="btn btn-login bg-green-500 w-24 rounded-xs" (click)="confirmLogout()">
+          Đăng xuất
+        </button>
+      </div>
+    </dialog>
+  </div>
+}

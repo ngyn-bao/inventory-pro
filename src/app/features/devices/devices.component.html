@@ -1,0 +1,176 @@
+<div class="device-management-container">
+  <h1 class="page-title">Quản lý thiết bị</h1>
+
+  <div class="table-card">
+    <div class="toolbar">
+      <div class="actions-left">
+        <button class="btn btn-primary" (click)="openAddModal()">+ Thêm thiết bị</button>
+      </div>
+      <div class="search-right">
+        <input
+          type="text"
+          placeholder="Tìm tên, mã, người quản lý..."
+          [(ngModel)]="searchTerm"
+          (input)="applyFilter()"
+        />
+        <button class="btn-search">🔍</button>
+      </div>
+    </div>
+
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th width="80">STT</th>
+          <th>Mã thiết bị</th>
+          <th>Tên thiết bị</th>
+          <th>Loại</th>
+          <th>Người quản lý</th>
+          <th>Tình trạng</th>
+          <th width="120" style="text-align: center">Thao Tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let device of pagedDevices">
+          <td>{{ device.stt }}</td>
+          <td>
+            <strong>{{ device.maThietBi }}</strong>
+          </td>
+          <td>{{ device.tenThietBi }}</td>
+          <td>{{ device.loaiThietBi }}</td>
+          <td>
+            <code style="color: #005a8d">&#64;{{ device.nguoiQuanLy }}</code>
+          </td>
+          <td>
+            <span
+              class="badge"
+              [ngClass]="{
+                'badge-success': device.tinhTrang === 'Hoạt động',
+                'badge-warning': device.tinhTrang === 'Bảo trì',
+                'badge-danger': device.tinhTrang === 'Hỏng',
+              }"
+              >{{ device.tinhTrang }}</span
+            >
+          </td>
+          <td style="text-align: center">
+            <div class="btn-group">
+              <button class="btn-icon btn-edit" (click)="openEditModal(device)">✏️</button>
+              <button class="btn-icon btn-delete" (click)="onDelete(device.stt)">🗑️</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredDevices.length === 0">
+          <td colspan="7" style="text-align: center; color: #999; padding: 20px">
+            Không có thiết bị nào
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination" *ngIf="filteredDevices.length > 0">
+      <span>
+        Hiển thị {{ visibleRangeStart }} - {{ visibleRangeEnd }} của tổng số {{ totalItems }}
+      </span>
+      <div class="pagination-controls">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="changePage(1)">
+          &laquo;
+        </button>
+        <button
+          class="page-btn"
+          [disabled]="currentPage === 1"
+          (click)="changePage(currentPage - 1)"
+        >
+          &lsaquo;
+        </button>
+
+        <button
+          *ngFor="let page of pageNumbers"
+          class="page-btn"
+          [class.active]="page === currentPage"
+          (click)="changePage(page)"
+        >
+          {{ page }}
+        </button>
+
+        <button
+          class="page-btn"
+          [disabled]="currentPage === totalPages"
+          (click)="changePage(currentPage + 1)"
+        >
+          &rsaquo;
+        </button>
+        <button
+          class="page-btn"
+          [disabled]="currentPage === totalPages"
+          (click)="changePage(totalPages)"
+        >
+          &raquo;
+        </button>
+
+        <select
+          class="page-size-select"
+          [ngModel]="pageSize"
+          (ngModelChange)="changePageSize($event)"
+        >
+          <option [ngValue]="5">5</option>
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="showModal">
+  <div class="modal-content">
+    <h2>{{ isEditMode ? 'Cập nhật thiết bị' : 'Thêm thiết bị mới' }}</h2>
+
+    <div class="form-group">
+      <label>Mã thiết bị</label>
+      <input
+        type="text"
+        [(ngModel)]="currentFormDevice.maThietBi"
+        [disabled]="isEditMode"
+        placeholder="Ví dụ: DEV-PC-05"
+      />
+    </div>
+    <div class="form-group">
+      <label>Tên thiết bị</label>
+      <input
+        type="text"
+        [(ngModel)]="currentFormDevice.tenThietBi"
+        placeholder="Ví dụ: Chuột Logitech G502"
+      />
+    </div>
+    <div class="form-group">
+      <label>Loại thiết bị</label>
+      <input
+        type="text"
+        [(ngModel)]="currentFormDevice.loaiThietBi"
+        placeholder="Ví dụ: Phụ kiện, Laptop..."
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Người quản lý (Lấy từ User list)</label>
+      <select [(ngModel)]="currentFormDevice.nguoiQuanLy">
+        <option *ngFor="let u of userList" [value]="u.username">
+          {{ u.hoTen }} (&#64;{{ u.username }})
+        </option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Tình trạng</label>
+      <select [(ngModel)]="currentFormDevice.tinhTrang">
+        <option value="Hoạt động">Hoạt động</option>
+        <option value="Bảo trì">Bảo trì</option>
+        <option value="Hỏng">Hỏng</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" (click)="showModal = false">Hủy</button>
+      <button class="btn btn-primary" (click)="saveDevice()">Lưu lại</button>
+    </div>
+  </div>
+</div>
