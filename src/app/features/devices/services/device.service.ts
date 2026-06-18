@@ -54,4 +54,11 @@ export class DeviceService {
     this.mockDevices = this.devicesSubject.value.filter((d) => d.stt !== stt);
     this.devicesSubject.next(this.mockDevices);
   }
+
+  deleteDevices(stts: number[]) {
+    const idsToDelete = new Set(stts);
+    const nextUsers = this.devicesSubject.value.filter((device) => !idsToDelete.has(device.stt));
+    this.devicesSubject.next(nextUsers);
+    // this.persistDevice(nextUsers);
+  }
 }

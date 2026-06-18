@@ -1,25 +1,27 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TableModule } from 'primeng/table'; // 👈 Import Table của PrimeNG
 import { DeviceService } from './services/device.service';
-import { UserService } from '../users/services/user.service'; // Gọi chéo sang User Service
+import { UserService } from '../users/services/user.service';
 import { Device } from '../../core/models/device.model';
 import { User } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-devices',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TableModule], // 👈 Thêm TableModule vào đây
   templateUrl: './devices.component.html',
   styleUrls: ['./devices.component.css'],
 })
 export class DevicesComponent implements OnInit {
   filteredDevices: Device[] = [];
   allDevices: Device[] = [];
-  userList: User[] = []; // Danh sách user để hiển thị trong dropdown chọn người quản lý
+  userList: User[] = [];
   searchTerm: string = '';
-  currentPage: number = 1;
-  pageSize: number = 5;
+
+  // 🚀 Mảng hứng danh sách thiết bị được tích chọn checkbox từ PrimeNG
+  selectedDevices: Device[] = [];
 
   showModal = false;
   isEditMode = false;
@@ -31,27 +33,33 @@ export class DevicesComponent implements OnInit {
     tinhTrang: 'Hoạt động',
   };
 
+  // 🚀 Các biến trạng thái quản lý Dialog ẩn/hiện nội bộ
+  showDeleteDialog = false;
+  deviceSttToDelete: number | null = null;
+  showBulkDeleteDialog = false;
+
   constructor(
     private deviceService: DeviceService,
     private userService: UserService,
   ) {}
 
   ngOnInit() {
-    // Lấy dữ liệu thiết bị
     this.deviceService.devices$.subscribe((devices) => {
       this.allDevices = devices;
       this.applyFilter();
+      this.syncSelectedDevices();
     });
 
-    // Lấy danh sách user từ UserService để map qua form
     this.userService.users$.subscribe((users) => {
       this.userList = users;
     });
   }
 
-  applyFilter() {
-    this.currentPage = 1;
+  get hasSelectedDevices(): boolean {
+    return this.selectedDevices.length > 0;
+  }
 
+  applyFilter() {
     if (!this.searchTerm.trim()) {
       this.filteredDevices = [...this.allDevices];
     } else {
@@ -65,47 +73,9 @@ export class DevicesComponent implements OnInit {
     }
   }
 
-  get totalItems(): number {
-    return this.filteredDevices.length;
-  }
-
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.totalItems / this.pageSize));
-  }
-
-  get pagedDevices(): Device[] {
-    const startIndex = (this.currentPage - 1) * this.pageSize;
-    return this.filteredDevices.slice(startIndex, startIndex + this.pageSize);
-  }
-
-  get visibleRangeStart(): number {
-    return this.totalItems === 0 ? 0 : (this.currentPage - 1) * this.pageSize + 1;
-  }
-
-  get visibleRangeEnd(): number {
-    return Math.min(this.currentPage * this.pageSize, this.totalItems);
-  }
-
-  get pageNumbers(): number[] {
-    const maxButtons = 5;
-    const halfWindow = Math.floor(maxButtons / 2);
-    let startPage = Math.max(1, this.currentPage - halfWindow);
-    let endPage = Math.min(this.totalPages, startPage + maxButtons - 1);
-
-    if (endPage - startPage + 1 < maxButtons) {
-      startPage = Math.max(1, endPage - maxButtons + 1);
-    }
-
-    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
-  }
-
-  changePage(page: number): void {
-    this.currentPage = Math.min(Math.max(page, 1), this.totalPages);
-  }
-
-  changePageSize(value: string | number): void {
-    this.pageSize = Number(value);
-    this.currentPage = 1;
+  syncSelectedDevices(): void {
+    const currentIds = new Set(this.allDevices.map((d) => d.stt));
+    this.selectedDevices = this.selectedDevices.filter((d) => currentIds.has(d.stt));
   }
 
   openAddModal() {
@@ -140,9 +110,40 @@ export class DevicesComponent implements OnInit {
     this.showModal = false;
   }
 
-  onDelete(stt: number) {
-    if (confirm(`Xóa thiết bị có STT ${stt}?`)) {
-      this.deviceService.deleteDevice(stt);
+  // 🚀 HÀM XỬ LÝ DIALOG XÓA ĐƠN LẺ
+  triggerDeletePrompt(stt: number) {
+    this.deviceSttToDelete = stt;
+    this.showDeleteDialog = true;
+  }
+
+  cancelDelete() {
+    this.deviceSttToDelete = null;
+    this.showDeleteDialog = false;
+  }
+
+  confirmDelete() {
+    if (this.deviceSttToDelete !== null) {
+      this.deviceService.deleteDevice(this.deviceSttToDelete);
     }
+    this.cancelDelete();
+  }
+
+  // 🚀 HÀM XỬ LÝ DIALOG XÓA HÀNG LOẠT
+  triggerBulkDeletePrompt(): void {
+    if (!this.hasSelectedDevices) return;
+    this.showBulkDeleteDialog = true;
+  }
+
+  cancelBulkDelete(): void {
+    this.showBulkDeleteDialog = false;
+  }
+
+  confirmBulkDelete(): void {
+    if (this.selectedDevices.length > 0) {
+      const idsToDelete = this.selectedDevices.map((d) => d.stt);
+      this.deviceService.deleteDevices(idsToDelete); // Đảm bảo Service có hàm xóa mảng ids
+      this.selectedDevices = [];
+    }
+    this.showBulkDeleteDialog = false;
   }
 }

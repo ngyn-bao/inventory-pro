@@ -1,10 +1,12 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'header-layout',
   templateUrl: './header-layout.component.html',
   styleUrl: './header-layout.component.css',
+  imports: [RouterLink],
 })
 export class HeaderLayoutComponent {
   @Output() toggleSidebar = new EventEmitter<void>();

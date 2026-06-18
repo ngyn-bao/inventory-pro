@@ -5,6 +5,13 @@
     <div class="toolbar">
       <div class="actions-left">
         <button class="btn btn-primary" (click)="openAddModal()">+ Thêm thiết bị</button>
+        <button
+          class="btn btn-danger-outline"
+          [disabled]="!hasSelectedDevices"
+          (click)="triggerBulkDeletePrompt()"
+        >
+          <i class="fa-solid fa-trash-can"></i> Xóa
+        </button>
       </div>
       <div class="search-right">
         <input
@@ -17,20 +24,38 @@
       </div>
     </div>
 
-    <table class="custom-table">
-      <thead>
+    <p-table
+      [value]="filteredDevices"
+      [(selection)]="selectedDevices"
+      dataKey="stt"
+      selectionMode="multiple"
+      [paginator]="true"
+      [rows]="5"
+      [rowsPerPageOptions]="[5, 10, 20]"
+      currentPageReportTemplate="Hiển thị {first} - {last} của tổng số {totalRecords}"
+      [showCurrentPageReport]="true"
+      [tableStyle]="{ 'min-width': '50rem' }"
+    >
+      <ng-template #header>
         <tr>
-          <th width="80">STT</th>
-          <th>Mã thiết bị</th>
-          <th>Tên thiết bị</th>
-          <th>Loại</th>
-          <th>Người quản lý</th>
-          <th>Tình trạng</th>
-          <th width="120" style="text-align: center">Thao Tác</th>
+          <th style="width: 5%">
+            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+          </th>
+          <th style="width: 8%">STT</th>
+          <th style="width: 15%">Mã thiết bị</th>
+          <th style="width: 25%">Tên thiết bị</th>
+          <th style="width: 15%">Loại</th>
+          <th style="width: 17%">Người quản lý</th>
+          <th style="width: 15%">Tình trạng</th>
+          <th style="width: 15%; text-align: center">Thao Tác</th>
         </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let device of pagedDevices">
+      </ng-template>
+
+      <ng-template #body let-device>
+        <tr [pSelectableRow]="device">
+          <td>
+            <p-tableCheckbox [value]="device"></p-tableCheckbox>
+          </td>
           <td>{{ device.stt }}</td>
           <td>
             <strong>{{ device.maThietBi }}</strong>
@@ -48,82 +73,85 @@
                 'badge-warning': device.tinhTrang === 'Bảo trì',
                 'badge-danger': device.tinhTrang === 'Hỏng',
               }"
-              >{{ device.tinhTrang }}</span
             >
+              {{ device.tinhTrang }}
+            </span>
           </td>
           <td style="text-align: center">
             <div class="btn-group">
-              <button class="btn-icon btn-edit" (click)="openEditModal(device)">✏️</button>
-              <button class="btn-icon btn-delete" (click)="onDelete(device.stt)">🗑️</button>
+              <button class="btn-icon btn-edit" title="Sửa" (click)="openEditModal(device)">
+                ✏️
+              </button>
+              <button
+                class="btn-icon btn-delete"
+                title="Xóa"
+                (click)="triggerDeletePrompt(device.stt)"
+              >
+                🗑️
+              </button>
             </div>
           </td>
         </tr>
-        <tr *ngIf="filteredDevices.length === 0">
-          <td colspan="7" style="text-align: center; color: #999; padding: 20px">
+      </ng-template>
+
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="8" style="text-align: center; color: #999; padding: 20px">
             Không có thiết bị nào
           </td>
         </tr>
-      </tbody>
-    </table>
-
-    <div class="pagination" *ngIf="filteredDevices.length > 0">
-      <span>
-        Hiển thị {{ visibleRangeStart }} - {{ visibleRangeEnd }} của tổng số {{ totalItems }}
-      </span>
-      <div class="pagination-controls">
-        <button class="page-btn" [disabled]="currentPage === 1" (click)="changePage(1)">
-          &laquo;
-        </button>
-        <button
-          class="page-btn"
-          [disabled]="currentPage === 1"
-          (click)="changePage(currentPage - 1)"
-        >
-          &lsaquo;
-        </button>
-
-        <button
-          *ngFor="let page of pageNumbers"
-          class="page-btn"
-          [class.active]="page === currentPage"
-          (click)="changePage(page)"
-        >
-          {{ page }}
-        </button>
-
-        <button
-          class="page-btn"
-          [disabled]="currentPage === totalPages"
-          (click)="changePage(currentPage + 1)"
-        >
-          &rsaquo;
-        </button>
-        <button
-          class="page-btn"
-          [disabled]="currentPage === totalPages"
-          (click)="changePage(totalPages)"
-        >
-          &raquo;
-        </button>
-
-        <select
-          class="page-size-select"
-          [ngModel]="pageSize"
-          (ngModelChange)="changePageSize($event)"
-        >
-          <option [ngValue]="5">5</option>
-          <option [ngValue]="10">10</option>
-          <option [ngValue]="20">20</option>
-        </select>
-      </div>
-    </div>
+      </ng-template>
+    </p-table>
   </div>
 </div>
+
+@if (showDeleteDialog) {
+  <div class="dialog-backdrop">
+    <dialog open class="custom-confirm-dialog">
+      <div class="dialog-header">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Xác nhận xóa</h3>
+      </div>
+      <div class="dialog-body">
+        <p>
+          Bạn có chắc chắn muốn xóa thiết bị có <strong>STT {{ deviceSttToDelete }}</strong> không?
+        </p>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn btn-secondary" (click)="cancelDelete()">Hủy</button>
+        <button class="btn btn-danger" (click)="confirmDelete()">Xác nhận xóa</button>
+      </div>
+    </dialog>
+  </div>
+}
+
+@if (showBulkDeleteDialog && hasSelectedDevices) {
+  <div class="dialog-backdrop">
+    <dialog open class="custom-confirm-dialog bg-amber-50 border border-amber-300 w-full max-w-md">
+      <div class="dialog-header text-amber-600">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo xóa hàng loạt</h3>
+      </div>
+      <div class="dialog-body text-gray-700">
+        <p>
+          Bạn có chắc chắn muốn xóa <strong>{{ selectedDevices.length }}</strong> thiết bị đang được
+          chọn không?
+        </p>
+        <p class="sub-text text-gray-500">
+          Thông tin tài sản và lịch sử thiết bị sẽ bị xóa vĩnh viễn.
+        </p>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn btn-secondary" (click)="cancelBulkDelete()">Hủy</button>
+        <button class="btn btn-danger bg-red-600 text-white" (click)="confirmBulkDelete()">
+          Xác nhận xóa sạch
+        </button>
+      </div>
+    </dialog>
+  </div>
+}
 
 <div class="modal-backdrop" *ngIf="showModal">
   <div class="modal-content">
     <h2>{{ isEditMode ? 'Cập nhật thiết bị' : 'Thêm thiết bị mới' }}</h2>
-
     <div class="form-group">
       <label>Mã thiết bị</label>
       <input
@@ -149,7 +177,6 @@
         placeholder="Ví dụ: Phụ kiện, Laptop..."
       />
     </div>
-
     <div class="form-group">
       <label>Người quản lý (Lấy từ User list)</label>
       <select [(ngModel)]="currentFormDevice.nguoiQuanLy">
@@ -158,7 +185,6 @@
         </option>
       </select>
     </div>
-
     <div class="form-group">
       <label>Tình trạng</label>
       <select [(ngModel)]="currentFormDevice.tinhTrang">
@@ -167,7 +193,6 @@
         <option value="Hỏng">Hỏng</option>
       </select>
     </div>
-
     <div class="modal-actions">
       <button class="btn btn-secondary" (click)="showModal = false">Hủy</button>
       <button class="btn btn-primary" (click)="saveDevice()">Lưu lại</button>

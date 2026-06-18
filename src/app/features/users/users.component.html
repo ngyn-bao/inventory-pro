@@ -1,3 +1,4 @@
+<p-toast></p-toast>
 <div class="user-management-container">
   <h1 class="page-title">Quản lý người dùng</h1>
 
@@ -60,9 +61,9 @@
           <td>{{ user.hoTen }}</td>
           <td>{{ user.username }}</td>
           <td>
-            <p-tag [value]="user.role" [severity]="getSeverity(user.role)" />
+            <p-tag [value]="user.role" [severity]="getSeverity(user.role)" class="w-16" />
           </td>
-          <td style="text-align: center">
+          <td style="text-align: center; padding-top: 10px">
             <div class="btn-group">
               <button class="btn-icon btn-edit" title="Sửa" (click)="openEditModal(user)">
                 <i class="fa-solid fa-pencil"></i>
